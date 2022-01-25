@@ -1,0 +1,92 @@
+<script>
+import { ref } from 'vue';
+import api from '../api/index.js';
+import Cookies from '../utils/cookies.js';
+
+export default {
+  setup() {
+    const email = ref('');
+    const password = ref('');
+
+    const login = async () => {
+      // const baseUrl = 'https://vue3-course-api.hexschool.io/v2';
+
+      const data = {
+        username: email.value,
+        password: password.value,
+      };
+
+      try {
+        const res = await api.auth.login(data);
+
+        console.log(res);
+        Cookies.setCookie('hexToken', res.token, res.expired);
+      } catch (err) {
+        console.log(err);
+      }
+
+      // axios
+      //   .post(`${baseUrl}/admin/signin`, data)
+      //   .then((res) => {
+      //     const { token, expired } = res.data;
+
+      //     // cookie token
+      //     document.cookie = `hexToken=${token};expires=${new Date(
+      //       expired
+      //     )}; path=/`;
+      //     window.location = 'products.html';
+      //   })
+      //   .catch((error) => {
+      //     alert(error.data.message);
+      //   });
+    };
+
+    return {
+      email,
+      password,
+      login,
+    };
+  },
+};
+</script>
+
+<template>
+  <div class="container">
+    <div class="row justify-content-center">
+      <h1 class="h3 mb-3 font-weight-normal">請先登入</h1>
+      <div class="col-8">
+        <form id="form" class="form-signin" @submit.prevent="login">
+          <div class="form-floating mb-3">
+            <input
+              type="email"
+              class="form-control"
+              id="username"
+              placeholder="name@example.com"
+              required
+              autofocus
+              v-model="email"
+            />
+            <label for="username">Email address</label>
+          </div>
+          <div class="form-floating">
+            <input
+              type="password"
+              class="form-control"
+              id="password"
+              placeholder="Password"
+              required
+              v-model="password"
+            />
+            <label for="password">Password</label>
+          </div>
+          <button class="btn btn-lg btn-primary w-100 mt-3" type="submit">
+            登入
+          </button>
+        </form>
+      </div>
+    </div>
+    <p class="mt-5 mb-3 text-muted">&copy; 2022~∞ - AprilChen</p>
+  </div>
+</template>
+
+<style lang="scss" scoped></style>
