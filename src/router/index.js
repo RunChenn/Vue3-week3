@@ -14,6 +14,14 @@ const routes = [
       layout: 'Login',
     },
   },
+  {
+    path: '/products',
+    name: 'Products',
+    component: () => import('../pages/products.vue'),
+    meta: {
+      layout: 'Products',
+    },
+  },
 ];
 
 const router = createRouter({

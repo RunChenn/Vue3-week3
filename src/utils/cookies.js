@@ -1,32 +1,39 @@
+const tokenName = 'hexToken';
+
 const Cookies = {
-  setCookie(cname, cvalue, exdays) {
-    console.log(cname);
-    console.log(cvalue);
-    console.log(exdays);
-    var d = new Date();
-    d.setTime(d.getTime() + exdays * 24 * 60 * 60 * 1000);
-    var expires = 'expires=' + d.toUTCString();
-    document.cookie = cname + '=' + cvalue + '; ' + expires;
+  setCookie(cname, token, expired) {
+    const cookieName = cname ? cname : tokenName;
+    document.cookie = `${cookieName}=${token};expires=${new Date(
+      expired
+    )}; path=/`;
   },
 
-  getCookie(cname) {
-    var name = cname + '=';
-    var ca = document.cookie.split(';');
-    for (var i = 0; i < ca.length; i++) {
-      var c = ca[i];
-      while (c.charAt(0) == ' ') c = c.substring(1);
-      if (c.indexOf(name) != -1) {
-        return c.substring(name.length, c.length);
-      }
-    }
-    return '';
+  getCookie() {
+    const token = document.cookie.replace(
+      /(?:(?:^|.*;\s*)hexToken\s*=\s*([^;]*).*$)|^.*$/,
+      '$1'
+    );
+
+    return token;
+    // console.log(cname);
+    // let name = cname + '=';
+    // let ca = document.cookie;
+    // let ca = document.cookie.split(';');
+    // for (let i = 0; i < ca.length; i++) {
+    //   let c = ca[i];
+    //   while (c.charAt(0) == ' ') c = c.substring(1);
+    //   if (c.indexOf(name) != -1) {
+    //     return c.substring(name.length, c.length);
+    //   }
+    // }
+    // return '';
   },
 
   clearCookie(cname) {
-    var d = new Date();
+    let d = new Date();
     d.setTime(-1);
-    var expires = 'expires=' + d.toUTCString();
+    let expires = 'expires=' + d.toUTCString();
     document.cookie = cname + "=''; " + expires;
   },
 };
-export default Cookies;
+export { Cookies, tokenName };

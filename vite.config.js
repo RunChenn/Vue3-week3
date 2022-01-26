@@ -12,15 +12,16 @@ export default defineConfig({
   //     },
   //   },
   // },
-  // server: {
-  //   port: 3000,
-  //   // open: true,
-  //   proxy: {
-  //     '/api/md': {
-  //       target: '',
-  //       changeOrigin: true, // 支持跨域
-  //       rewrite: (path) => path.replace(/^\/api/, ''),
-  //     },
-  //   },
-  // },
+  server: {
+    host: '0.0.0.0',
+    //   port: 3000,
+    //   // open: true,
+    //   proxy: {
+    //     '/api/md': {
+    //       target: '',
+    //       changeOrigin: true, // 支持跨域
+    //       rewrite: (path) => path.replace(/^\/api/, ''),
+    //     },
+    //   },
+  },
 });

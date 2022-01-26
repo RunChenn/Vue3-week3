@@ -5,7 +5,10 @@ export default {
   login: (data) => {
     return axiosInstance.post('/admin/signin', data);
   },
+  checkAuth: () => {
+    return axiosInstance.post('/api/user/check');
+  },
 
   // 登出
-  // logout: () => axiosAuthInstance.get('/logout'),
+  // logout: () => axiosInstance.get('/logout'),
 };

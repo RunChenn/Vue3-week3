@@ -1,4 +1,7 @@
 import axios from 'axios';
+import { Cookies } from './cookies.js';
+
+const apiPath = 'aprilchen';
 
 const axiosInstance = axios.create({
   baseURL: 'https://vue3-course-api.hexschool.io/v2',
@@ -10,14 +13,18 @@ const axiosInstance = axios.create({
 // request interceptor
 axiosInstance.interceptors.request.use(
   (res) => {
-    // const token = store().getters['auth/accessToken'];
-    // if (token) {
-    //     config.headers['Authorization'] = 'Bearer ' + token;
-    // }
+    if (Cookies && Cookies.getCookie()) {
+      const token = Cookies.getCookie();
+
+      token && (res.headers.common.Authorization = token);
+
+      // window.location.href = '/#/';
+    }
     return res;
   },
   (err) => {
-    Promise.reject(err);
+    console.log(error);
+    return Promise.reject(err);
   }
 );
 
@@ -25,27 +32,26 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   async (res) => {
     // const store = useStore();
-    // console.log(res);
+    console.log(res);
     // console.log(store.state.Global.dialogStatus);
     // await store.dispatch('Global/getDialogStatus', true);
     return res.data ? res.data : res;
   },
   (err) => {
-    // console.log(err.response);
+    console.log(err.response);
     if (err && err.response) {
-      const errorCode =
-        err.response.data.code === undefined
-          ? ''
-          : err.response.data.code.toString();
-
       switch (err.response.status) {
         case 400:
           break;
+        case 401:
+          alert(err.response.data.message);
+          window.location.href = '/#/login';
+          break;
+        case 403:
+          alert(err.response.data.message);
+          window.location.href = '/#/login';
+          break;
         case 500:
-          // switch (errorCode) {
-          //   case '500-9999':
-          //     break;
-          // }
           break;
         default:
           console.log(`連接錯誤${err.response.status}`);
@@ -58,4 +64,4 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-export { axiosInstance };
+export { axiosInstance, apiPath };

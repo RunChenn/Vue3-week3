@@ -1,10 +1,13 @@
 <script>
 import { ref } from 'vue';
 import api from '../api/index.js';
-import Cookies from '../utils/cookies.js';
+import { Cookies, tokenName } from '../utils/cookies.js';
+
+import { useRouter } from 'vue-router';
 
 export default {
   setup() {
+    const router = useRouter();
     const email = ref('');
     const password = ref('');
 
@@ -17,10 +20,10 @@ export default {
       };
 
       try {
-        const res = await api.auth.login(data);
+        const { token, expired } = await api.auth.login(data);
 
-        console.log(res);
-        Cookies.setCookie('hexToken', res.token, res.expired);
+        Cookies.setCookie(tokenName, token, expired);
+        router.push({ name: 'Products' });
       } catch (err) {
         console.log(err);
       }
