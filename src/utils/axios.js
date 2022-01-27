@@ -23,8 +23,8 @@ axiosInstance.interceptors.request.use(
     return res;
   },
   (err) => {
-    console.log(error);
-    return Promise.reject(err);
+    console.log(err);
+    return Promise.reject(err.response.data ? err.response.data : err.response);
   }
 );
 
@@ -60,7 +60,7 @@ axiosInstance.interceptors.response.use(
     }
 
     // return Error object with Promise
-    return Promise.reject(err.response);
+    return Promise.reject(err.response.data ? err.response.data : err.response);
   }
 );
 

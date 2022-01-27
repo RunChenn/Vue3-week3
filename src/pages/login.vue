@@ -25,7 +25,7 @@ export default {
         Cookies.setCookie(tokenName, token, expired);
         router.push({ name: 'Products' });
       } catch (err) {
-        console.log(err);
+        alert(err.message);
       }
 
       // axios

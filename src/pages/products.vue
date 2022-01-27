@@ -2,45 +2,137 @@
 import { ref, onMounted } from 'vue';
 import api from '../api/index.js';
 
+import { Modal } from 'bootstrap';
+
 export default {
   setup() {
+    // let isShowProdModal = ref(false);
+    let productModal = ref(null);
+    let delProductModal = ref(null);
+
     let products = ref([]);
 
     let prodInfo = ref({});
 
     let isEnabled = ref(false);
 
+    let isNew = ref(false);
+
+    let tempProduct = ref({ imagesUrl: [], id: '' });
+
     const prodsDetail = (item) => {
       prodInfo.value = item;
     };
 
+    // 載入所有商品
+    const getData = async () => {
+      try {
+        const prodsData = await api.products.getProducts();
+
+        products.value = prodsData.products;
+      } catch (err) {
+        alert(err.message);
+      }
+    };
+
     onMounted(async () => {
+      productModal.value = new Modal(document.getElementById('productModal'), {
+        keyboard: false,
+      });
+
+      delProductModal.value = new Modal(
+        document.getElementById('delProductModal'),
+        {
+          keyboard: false,
+        }
+      );
+
       try {
         // 檢查權限
         await api.auth.checkAuth();
-
-        // 載入所有商品
-        const res = await api.products.getProducts();
-
-        console.log(res);
-
-        products.value = res.products;
-
-        products.value.map(
-          (ele) => (isEnabled.value = ele.is_enabled ? true : false)
-        );
-
-        // isEnabled.value = res.data.is_enabled ? true : false;
-
-        // console.log(products);
+        getData();
       } catch (err) {
-        console.log(err);
+        alert(err.message);
       }
     });
 
-    const toggleSwitch = () => {
-      console.log('toggleSwitch');
-      isEnabled.value = !isEnabled.value;
+    const openModal = (status, item) => {
+      console.log(status);
+      isNew.value = status === 'new' ? true : false;
+
+      tempProduct.value =
+        status === 'new'
+          ? {
+              imagesUrl: [],
+            }
+          : { ...item };
+
+      if (status === 'delete') {
+        delProductModal.value.show();
+      }
+    };
+
+    // 新增/編輯 商品
+    const updateProduct = async () => {
+      console.log(tempProduct.value);
+
+      // 新增
+      if (isNew.value) {
+        try {
+          const res = await api.products.addProducts({
+            data: tempProduct.value,
+          });
+
+          console.log(res);
+          alert(res.message);
+
+          getData();
+
+          productModal.value.hide();
+        } catch (err) {
+          alert(err.message);
+        }
+
+        return;
+      }
+
+      // 編輯
+      try {
+        const res = await api.products.updateProducts(tempProduct.value.id, {
+          data: tempProduct.value,
+        });
+
+        console.log(res);
+        alert(res.message);
+
+        getData();
+
+        productModal.value.hide();
+      } catch (err) {
+        alert(err.message);
+      }
+    };
+
+    // 刪除商品
+    const delProduct = async () => {
+      try {
+        const res = await api.products.delProducts(tempProduct.value.id);
+
+        console.log(res);
+        alert(res.message);
+
+        getData();
+
+        delProductModal.value.hide();
+      } catch (err) {
+        alert(err.message);
+      }
+    };
+
+    // 新增圖片
+    const createImages = () => {
+      tempProduct.value.imagesUrl = [];
+      tempProduct.value.imagesUrl.push('');
     };
 
     return {
@@ -48,7 +140,12 @@ export default {
       isEnabled,
       prodsDetail,
       prodInfo,
-      toggleSwitch,
+      tempProduct,
+      isNew,
+      openModal,
+      updateProduct,
+      delProduct,
+      createImages,
     };
   },
 };
@@ -79,7 +176,7 @@ export default {
                 <th scope="col">原價</th>
                 <th scope="col">售價</th>
                 <th scope="col">是否啟用</th>
-                <th scope="col">查看細節</th>
+                <th scope="col">操作</th>
               </tr>
             </thead>
             <tbody>
@@ -107,14 +204,31 @@ export default {
                       role="switch"
                       :id="`switchCheckBox${index}`"
                       v-model="products[index].is_enabled"
-                      :checked="products[index].is_enabled"
+                      :true-value="1"
+                      :false-value="0"
                     />
                   </div>
                 </td>
                 <td>
                   <button
                     type="button"
-                    class="btn btn-warning"
+                    class="btn btn-outline-primary btn-sm me-2 mb-2"
+                    data-bs-target="#productModal"
+                    data-bs-toggle="modal"
+                    @click="openModal('edit', item)"
+                  >
+                    編輯
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-danger btn-sm me-2 mb-2"
+                    @click="openModal('delete', item)"
+                  >
+                    刪除
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline-success btn-sm"
                     @click="prodsDetail(item)"
                   >
                     查看細節
@@ -179,23 +293,23 @@ export default {
     <div
       id="productModal"
       ref="productModal"
-      class="modal fade"
+      class="modal fade text-start"
       tabindex="-1"
       aria-labelledby="productModalLabel"
       aria-hidden="true"
       data-bs-backdrop="static"
       data-bs-keyboard="false"
     >
-      <div class="modal-dialog modal-xl">
+      <div class="modal-dialog modal-dialog-scrollable modal-xl">
         <div class="modal-content border-0">
-          <div class="modal-header bg-dark text-white">
+          <div class="modal-header bg-primary text-white">
             <h5 id="productModalLabel" class="modal-title">
               <span v-if="isNew">新增產品</span>
               <span v-else>編輯產品</span>
             </h5>
             <button
               type="button"
-              class="btn-close"
+              class="btn-close text-white"
               data-bs-dismiss="modal"
               aria-label="Close"
             ></button>
@@ -217,13 +331,13 @@ export default {
                 <div v-if="Array.isArray(tempProduct.imagesUrl)">
                   <div
                     class="mb-1"
-                    v-for="(image, key) in tempProduct.imagesUrl"
-                    :key="key"
+                    v-for="(image, index) in tempProduct.imagesUrl"
+                    :key="index"
                   >
                     <div class="mb-3">
                       <label for="imageUrl" class="form-label">圖片網址</label>
                       <input
-                        v-model="tempProduct.imagesUrl[key]"
+                        v-model="tempProduct.imagesUrl[index]"
                         type="text"
                         class="form-control"
                         placeholder="請輸入圖片連結"
@@ -366,17 +480,60 @@ export default {
           <div class="modal-footer">
             <button
               type="button"
-              class="btn btn-outline-secondary"
+              class="btn btn-outline-danger"
               data-bs-dismiss="modal"
             >
               取消
             </button>
             <button
               type="button"
-              class="btn btn-primary"
+              class="btn btn-success"
               @click="updateProduct"
             >
               確認
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- delModal -->
+    <div
+      id="delProductModal"
+      ref="delProductModal"
+      class="modal fade"
+      tabindex="-1"
+      aria-labelledby="delProductModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+          <div class="modal-header bg-primary text-white">
+            <h5 id="delProductModalLabel" class="modal-title">
+              <span>刪除產品</span>
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            是否刪除
+            <strong class="text-danger">{{ tempProduct.title }}</strong>
+            商品
+            <br />刪除後將無法恢復
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-outline-danger"
+              data-bs-dismiss="modal"
+            >
+              取消
+            </button>
+            <button type="button" class="btn btn-success" @click="delProduct">
+              確認刪除
             </button>
           </div>
         </div>
