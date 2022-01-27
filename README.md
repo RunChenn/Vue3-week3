@@ -5,6 +5,8 @@
 - 使用者可以新增、編輯、刪除商品
 - 商品啟用、關閉可以使用不同的顏色標示
 
+Demo：https://runchenn.github.io/Vue3-week3/
+
 ## Developer
 
 [Run Chen](https://github.com/RunChenn)# Vue3-week3
