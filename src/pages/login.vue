@@ -12,8 +12,6 @@ export default {
     const password = ref('');
 
     const login = async () => {
-      // const baseUrl = 'https://vue3-course-api.hexschool.io/v2';
-
       const data = {
         username: email.value,
         password: password.value,
@@ -27,21 +25,6 @@ export default {
       } catch (err) {
         alert(err.message);
       }
-
-      // axios
-      //   .post(`${baseUrl}/admin/signin`, data)
-      //   .then((res) => {
-      //     const { token, expired } = res.data;
-
-      //     // cookie token
-      //     document.cookie = `hexToken=${token};expires=${new Date(
-      //       expired
-      //     )}; path=/`;
-      //     window.location = 'products.html';
-      //   })
-      //   .catch((error) => {
-      //     alert(error.data.message);
-      //   });
     };
 
     return {

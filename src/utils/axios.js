@@ -23,7 +23,7 @@ axiosInstance.interceptors.request.use(
     return res;
   },
   (err) => {
-    console.log(err);
+    // console.log(err);
     return Promise.reject(err.response.data ? err.response.data : err.response);
   }
 );
@@ -31,14 +31,10 @@ axiosInstance.interceptors.request.use(
 // response interceptor
 axiosInstance.interceptors.response.use(
   async (res) => {
-    // const store = useStore();
-    console.log(res);
-    // console.log(store.state.Global.dialogStatus);
-    // await store.dispatch('Global/getDialogStatus', true);
     return res.data ? res.data : res;
   },
   (err) => {
-    console.log(err.response);
+    // console.log(err.response);
     if (err && err.response) {
       switch (err.response.status) {
         case 400:

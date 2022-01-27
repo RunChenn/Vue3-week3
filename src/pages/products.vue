@@ -6,9 +6,9 @@ import { Modal } from 'bootstrap';
 
 export default {
   setup() {
-    // let isShowProdModal = ref(false);
     let productModal = ref(null);
     let delProductModal = ref(null);
+    let detailProdsModal = ref(null);
 
     let products = ref([]);
 
@@ -22,13 +22,13 @@ export default {
 
     const prodsDetail = (item) => {
       prodInfo.value = item;
+      detailProdsModal.value.show();
     };
 
     // 載入所有商品
     const getData = async () => {
       try {
         const prodsData = await api.products.getProducts();
-
         products.value = prodsData.products;
       } catch (err) {
         alert(err.message);
@@ -47,6 +47,13 @@ export default {
         }
       );
 
+      detailProdsModal.value = new Modal(
+        document.getElementById('detailProdsModal'),
+        {
+          keyboard: false,
+        }
+      );
+
       try {
         // 檢查權限
         await api.auth.checkAuth();
@@ -57,7 +64,6 @@ export default {
     });
 
     const openModal = (status, item) => {
-      console.log(status);
       isNew.value = status === 'new' ? true : false;
 
       tempProduct.value =
@@ -74,8 +80,6 @@ export default {
 
     // 新增/編輯 商品
     const updateProduct = async () => {
-      console.log(tempProduct.value);
-
       // 新增
       if (isNew.value) {
         try {
@@ -83,7 +87,6 @@ export default {
             data: tempProduct.value,
           });
 
-          console.log(res);
           alert(res.message);
 
           getData();
@@ -92,7 +95,6 @@ export default {
         } catch (err) {
           alert(err.message);
         }
-
         return;
       }
 
@@ -102,7 +104,6 @@ export default {
           data: tempProduct.value,
         });
 
-        console.log(res);
         alert(res.message);
 
         getData();
@@ -118,7 +119,6 @@ export default {
       try {
         const res = await api.products.delProducts(tempProduct.value.id);
 
-        console.log(res);
         alert(res.message);
 
         getData();
@@ -166,7 +166,7 @@ export default {
             建立新的產品
           </button>
         </div>
-        <div class="col-md-6">
+        <div class="col-12 col-sm-12">
           <h3>產品列表</h3>
           <hr />
           <table class="table table-hover">
@@ -180,24 +180,21 @@ export default {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(item, index) in products" :key="item.id">
+              <tr v-for="item in products" :key="item.id">
                 <th scope="row">{{ item.title }}</th>
                 <td>{{ item.origin_price }}</td>
                 <td>{{ item.price }}</td>
                 <td>
-                  <!-- <span v-if="item.is_enabled" class="text-success"
-                      >啟用</span
-                    >
-                    <span v-else>未啟用</span> -->
-                  <label
+                  <span v-if="item.is_enabled" class="text-success">啟用</span>
+                  <span v-else>未啟用</span>
+                  <!-- <label
                     class="form-check-label"
                     :for="`switchCheckBox${index}`"
                   >
                     <span v-if="item.is_enabled" class="checked">啟用</span>
                     <span v-else>未啟用</span>
-                    <!-- {{ item.is_enabled ? '啟用' : '未啟用' }} -->
-                  </label>
-                  <div class="form-check form-switch">
+                  </label> -->
+                  <!-- <div class="form-check form-switch">
                     <input
                       class="form-check-input form-check-input-checked-bg-color-success"
                       type="checkbox"
@@ -207,12 +204,12 @@ export default {
                       :true-value="1"
                       :false-value="0"
                     />
-                  </div>
+                  </div> -->
                 </td>
                 <td>
                   <button
                     type="button"
-                    class="btn btn-outline-primary btn-sm me-2 mb-2"
+                    class="btn btn-outline-primary btn-sm me-2 mb-md-1"
                     data-bs-target="#productModal"
                     data-bs-toggle="modal"
                     @click="openModal('edit', item)"
@@ -221,14 +218,14 @@ export default {
                   </button>
                   <button
                     type="button"
-                    class="btn btn-outline-danger btn-sm me-2 mb-2"
+                    class="btn btn-outline-danger btn-sm me-2 mb-md-1"
                     @click="openModal('delete', item)"
                   >
                     刪除
                   </button>
                   <button
                     type="button"
-                    class="btn btn-outline-success btn-sm"
+                    class="btn btn-outline-success btn-sm me-2 mb-md-1"
                     @click="prodsDetail(item)"
                   >
                     查看細節
@@ -240,52 +237,10 @@ export default {
           <p>
             目前有
             <span
-              ><strong>{{ products.length }}</strong></span
+              ><strong>{{ Object.keys(products).length }}</strong></span
             >
             項產品
           </p>
-        </div>
-        <div class="col-md-6">
-          <h3>單一產品細節</h3>
-          <hr />
-          <h4>{{ prodInfo.title }}</h4>
-          <div v-if="prodInfo.title">
-            <div class="card mb-3">
-              <img
-                :src="prodInfo.imageUrl"
-                class="card-img-top primary-image"
-                alt="主圖"
-              />
-              <div class="card-body">
-                <h5 class="card-title">
-                  {{ prodInfo.title }}
-                  <span class="badge bg-primary ms-2">{{
-                    prodInfo.category
-                  }}</span>
-                </h5>
-                <p class="card-text">商品描述：{{ prodInfo.description }}</p>
-                <p class="card-text">商品內容：{{ prodInfo.content }}</p>
-                <div class="d-flex">
-                  <p class="card-text me-2 text-danger">
-                    ${{ prodInfo.price }}
-                  </p>
-                  <p class="card-text text-black-50">
-                    <del>{{ prodInfo.origin_price }}</del>
-                  </p>
-                  {{ prodInfo.unit }} / 元
-                </div>
-              </div>
-            </div>
-            <span v-for="image in prodInfo.imagesUrl" :key="image">
-              <img
-                v-if="image"
-                :src="image"
-                :alt="prodInfo.title"
-                class="images m-2"
-              />
-            </span>
-          </div>
-          <p v-else class="text-primary">請選擇一個商品查看</p>
         </div>
       </div>
     </div>
@@ -315,7 +270,7 @@ export default {
             ></button>
           </div>
           <div class="modal-body">
-            <div class="row">
+            <form class="row needs-validation" novalidate>
               <div class="col-sm-4">
                 <div class="mb-3">
                   <label for="imageUrl" class="form-label">主要圖片</label>
@@ -324,6 +279,7 @@ export default {
                     type="text"
                     class="form-control mb-2"
                     placeholder="請輸入圖片連結"
+                    required
                   />
                   <img class="img-fluid" :src="tempProduct.imageUrl" />
                 </div>
@@ -385,6 +341,7 @@ export default {
                     type="text"
                     class="form-control"
                     placeholder="請輸入標題"
+                    required
                   />
                 </div>
 
@@ -397,6 +354,7 @@ export default {
                       type="text"
                       class="form-control"
                       placeholder="請輸入分類"
+                      required
                     />
                   </div>
                   <div class="mb-3 col-md-6">
@@ -421,6 +379,7 @@ export default {
                       min="0"
                       class="form-control"
                       placeholder="請輸入原價"
+                      required
                     />
                   </div>
                   <div class="mb-3 col-md-6">
@@ -432,6 +391,7 @@ export default {
                       min="0"
                       class="form-control"
                       placeholder="請輸入售價"
+                      required
                     />
                   </div>
                 </div>
@@ -475,7 +435,7 @@ export default {
                   </div>
                 </div>
               </div>
-            </div>
+            </form>
           </div>
           <div class="modal-footer">
             <button
@@ -539,10 +499,88 @@ export default {
         </div>
       </div>
     </div>
+
+    <!-- detailProdsModal -->
+    <div
+      id="detailProdsModal"
+      ref="detailProdsModal"
+      class="modal fade text-start"
+      tabindex="-1"
+      aria-labelledby="detailProdsModalLabel"
+      aria-hidden="true"
+      data-bs-keyboard="false"
+    >
+      <div class="modal-dialog modal-dialog-scrollable modal-xl">
+        <div class="modal-content border-0">
+          <div class="modal-header bg-primary text-white">
+            <h5 id="detailProdsModalLabel" class="modal-title">
+              {{ prodInfo.title }}
+            </h5>
+            <button
+              type="button"
+              class="btn-close text-white"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <!-- <h4>{{ prodInfo.title }}</h4> -->
+            <div v-if="prodInfo.title">
+              <div class="card mb-3">
+                <img
+                  :src="prodInfo.imageUrl"
+                  class="card-img-top primary-image"
+                  alt="主圖"
+                />
+                <div class="card-body">
+                  <h5 class="card-title">
+                    {{ prodInfo.title }}
+                    <span class="badge bg-primary ms-2">{{
+                      prodInfo.category
+                    }}</span>
+                  </h5>
+                  <p class="card-text">商品描述：{{ prodInfo.description }}</p>
+                  <p class="card-text">商品內容：{{ prodInfo.content }}</p>
+                  <div class="d-flex">
+                    <p class="card-text me-2 text-danger">
+                      ${{ prodInfo.price }}
+                    </p>
+                    <p class="card-text text-black-50">
+                      <del>{{ prodInfo.origin_price }}</del>
+                    </p>
+                    {{ prodInfo.unit }} / 元
+                  </div>
+                </div>
+              </div>
+              <span v-for="image in prodInfo.imagesUrl" :key="image">
+                <img
+                  v-if="image"
+                  :src="image"
+                  :alt="prodInfo.title"
+                  class="images m-2"
+                />
+              </span>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-success mx-auto"
+              data-bs-dismiss="modal"
+            >
+              關閉
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+table {
+  vertical-align: middle;
+}
 img {
   max-width: 100%;
 
